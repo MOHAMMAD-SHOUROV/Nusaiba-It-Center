@@ -4,6 +4,15 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Artifacts
+
+### Nusaiba IT Center (`artifacts/nusaiba-it-center`)
+- Smart Attendance & Collection Manager
+- Features: Attendance Sheet, Dollar/Taka Collection, Analytics, Member Management
+- Stack: React + Vite, Tailwind CSS, shadcn/ui, @base-ui/react, motion, recharts, jsPDF, xlsx
+- Preview path: `/`
+- Source imported from zip: `nusaiba-it-center_1777654023828.zip`
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

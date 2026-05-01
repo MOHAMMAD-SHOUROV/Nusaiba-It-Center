@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Member": {
+      "title": "Member",
+      "description": "A staff or team member being tracked",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name"]
+    },
+    "MonthlyRecord": {
+      "title": "Monthly Record",
+      "description": "Attendance and collection data for a member in a specific month",
+      "type": "object",
+      "properties": {
+        "memberId": { "type": "string" },
+        "monthKey": { "type": "string", "description": "e.g., 2024-05" },
+        "attendance": { 
+          "type": "object", 
+          "description": "Map of day index (1-31) to status (P/A/null)"
+        },
+        "amount": { "type": "number", "description": "Collection amount in local currency" },
+        "dollar": { "type": "number", "description": "Collection amount in USD" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["memberId", "monthKey"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "List of tracked members"
+    },
+    "/records/{recordId}": {
+      "schema": "MonthlyRecord",
+      "description": "Attendance and collection records. ID usually combination of monthKey and memberId"
+    }
+  }
+}
