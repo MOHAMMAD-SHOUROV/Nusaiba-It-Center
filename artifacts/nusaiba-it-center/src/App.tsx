@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Users, 
   Table as TableIcon, 
@@ -57,7 +57,7 @@ import {
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Member, MonthlyRecord } from './types';
+import { Member, MonthlyRecord, CellColor } from './types';
 import { exportToExcel, exportToPDF } from '@/lib/export';
 
 // Mock Data for Initial Launch
@@ -189,8 +189,38 @@ export default function App() {
           attendance: {},
           amountMap: type === 'amountMap' ? targetMap : {},
           dollarMap: type === 'dollarMap' ? targetMap : {},
+          amountColorMap: {},
+          dollarColorMap: {},
           amount: type === 'amountMap' ? total : 0,
           dollar: type === 'dollarMap' ? total : 0,
+          updatedAt: new Date().toISOString()
+        };
+        return [...prev, newRecord];
+      }
+    });
+  };
+
+  const updateCollectionColor = (memberId: string, day: number, color: CellColor, type: 'amountColorMap' | 'dollarColorMap') => {
+    setRecords(prev => {
+      const existing = prev.find(r => r.memberId === memberId && r.monthKey === monthKey);
+      if (existing) {
+        return prev.map(r => r === existing ? {
+          ...r,
+          [type]: { ...(r[type] || {}), [day]: color },
+          updatedAt: new Date().toISOString()
+        } : r);
+      } else {
+        const newRecord: MonthlyRecord = {
+          id: `${monthKey}-${memberId}`,
+          memberId,
+          monthKey,
+          attendance: {},
+          amountMap: {},
+          dollarMap: {},
+          amountColorMap: type === 'amountColorMap' ? { [day]: color } : {},
+          dollarColorMap: type === 'dollarColorMap' ? { [day]: color } : {},
+          amount: 0,
+          dollar: 0,
           updatedAt: new Date().toISOString()
         };
         return [...prev, newRecord];
@@ -497,6 +527,8 @@ export default function App() {
                                         <CollectionCell 
                                           value={record?.[activeTab === 'dollar-sheet' ? 'dollarMap' : 'amountMap']?.[dayNum] ?? null}
                                           onChange={(val) => updateCollection(member.id, dayNum, val, activeTab === 'dollar-sheet' ? 'dollarMap' : 'amountMap')}
+                                          color={(record?.[activeTab === 'dollar-sheet' ? 'dollarColorMap' : 'amountColorMap']?.[dayNum] ?? 'default') as CellColor}
+                                          onColorChange={(c) => updateCollectionColor(member.id, dayNum, c, activeTab === 'dollar-sheet' ? 'dollarColorMap' : 'amountColorMap')}
                                           prefix={activeTab === 'dollar-sheet' ? '$' : '৳'}
                                         />
                                       )}
@@ -687,9 +719,17 @@ function AttendanceCell({ status, onChange }: { status: 'P' | 'A' | null, onChan
   );
 }
 
-function CollectionCell({ value, onChange, prefix }: { value: number | null, onChange: (val: number | null) => void, prefix: string }) {
+function CollectionCell({ value, onChange, prefix, color, onColorChange }: { 
+  value: number | null; 
+  onChange: (val: number | null) => void; 
+  prefix: string;
+  color: CellColor;
+  onColorChange: (c: CellColor) => void;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value?.toString() || '');
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHolding = useRef(false);
 
   const handleBlur = () => {
     setIsEditing(false);
@@ -697,11 +737,36 @@ function CollectionCell({ value, onChange, prefix }: { value: number | null, onC
     onChange(isNaN(num) ? null : num);
   };
 
+  const handleMouseDown = () => {
+    isHolding.current = false;
+    holdTimer.current = setTimeout(() => {
+      isHolding.current = true;
+      const next: CellColor = color === 'default' ? 'red' : color === 'red' ? 'blue' : 'default';
+      onColorChange(next);
+    }, 600);
+  };
+
+  const handleMouseUp = () => {
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    if (!isHolding.current) setIsEditing(true);
+    isHolding.current = false;
+  };
+
+  const handleMouseLeave = () => {
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+  };
+
+  const colorClass = color === 'red'
+    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+    : color === 'blue'
+    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+    : 'bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-200';
+
   if (isEditing) {
     return (
       <input 
         autoFocus
-        className="w-full h-full text-center text-[10px] bg-white dark:bg-zinc-800 border-none outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+        className="w-full h-full text-center text-[12px] font-bold bg-white dark:bg-zinc-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onBlur={handleBlur}
@@ -712,10 +777,14 @@ function CollectionCell({ value, onChange, prefix }: { value: number | null, onC
 
   return (
     <button 
-      onClick={() => setIsEditing(true)}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleMouseDown}
+      onTouchEnd={handleMouseUp}
       className={`
-        w-full h-full flex items-center justify-center text-[9px] font-mono transition-all
-        ${value ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-bold' : 'text-slate-300 dark:text-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800'}
+        w-full h-full flex items-center justify-center text-[12px] font-bold font-mono transition-all select-none
+        ${value ? colorClass : 'text-slate-200 dark:text-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800'}
       `}
     >
       {value ? `${prefix}${value}` : ''}

@@ -24,6 +24,12 @@ export interface CollectionMap {
   [day: number]: number | null;
 }
 
+export type CellColor = 'default' | 'red' | 'blue';
+
+export interface ColorMap {
+  [day: number]: CellColor;
+}
+
 export interface MonthlyRecord {
   id: string;
   memberId: string;
@@ -31,6 +37,8 @@ export interface MonthlyRecord {
   attendance: AttendanceMap;
   amountMap: CollectionMap;
   dollarMap: CollectionMap;
+  amountColorMap: ColorMap;
+  dollarColorMap: ColorMap;
   amount: number; // Total for month
   dollar: number; // Total for month
   updatedAt: string;
