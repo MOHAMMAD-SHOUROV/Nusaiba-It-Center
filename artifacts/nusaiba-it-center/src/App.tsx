@@ -14,12 +14,15 @@ import {
   Sun, 
   ChevronLeft, 
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Download,
   Plus,
   Search,
   LayoutDashboard,
   FileDown,
-  Bell
+  Bell,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
@@ -137,6 +140,18 @@ export default function App() {
     setMembers(members.filter(m => m.id !== id));
     setRecords(records.filter(r => r.memberId !== id));
     toast.info("Member removed");
+  };
+
+  const moveMember = (id: string, direction: 'up' | 'down') => {
+    setMembers(prev => {
+      const idx = prev.findIndex(m => m.id === id);
+      if (idx === -1) return prev;
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      const arr = [...prev];
+      [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+      return arr;
+    });
   };
 
   const updateRecord = (memberId: string, day: number, status: 'P' | 'A' | null) => {
@@ -496,20 +511,32 @@ export default function App() {
                           <TableBody>
                             {filteredMembers.map((member) => (
                               <TableRow key={member.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors border-slate-300 dark:border-zinc-600">
-                                <TableCell className="font-medium sticky left-0 bg-white dark:bg-zinc-900 z-10 border-r border-r-slate-400 dark:border-r-zinc-500 border-b border-b-slate-300 dark:border-b-zinc-600 py-3">
-                                  <div className="flex items-center justify-between group">
-                                    <div className="flex flex-col whitespace-nowrap">
-                                      <span className="text-sm font-semibold">{member.name}</span>
+                                <TableCell className="font-medium sticky left-0 bg-white dark:bg-zinc-900 z-10 border-r border-r-slate-400 dark:border-r-zinc-500 border-b border-b-slate-300 dark:border-b-zinc-600 py-1 px-2">
+                                  <div className="flex items-center gap-1">
+                                    <div className="flex flex-col gap-0">
+                                      <button
+                                        onClick={() => moveMember(member.id, 'up')}
+                                        className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                                      >
+                                        <ChevronUp className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        onClick={() => moveMember(member.id, 'down')}
+                                        className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                                      >
+                                        <ChevronDown className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    <div className="flex flex-col whitespace-nowrap flex-1 min-w-0">
+                                      <span className="text-sm font-semibold truncate">{member.name}</span>
                                       <span className="text-[10px] text-slate-400 font-normal">{member.phone}</span>
                                     </div>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-6 w-6 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all ml-2"
+                                    <button
                                       onClick={() => removeMember(member.id)}
+                                      className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
                                     >
-                                      <LogOut className="w-3 h-3 rotate-180" />
-                                    </Button>
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
                                   </div>
                                 </TableCell>
                                 {daysInMonth.map(day => {

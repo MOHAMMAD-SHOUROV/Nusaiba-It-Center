@@ -51,5 +51,15 @@ export const exportToPDF = (members: Member[], monthKey: string) => {
     headStyles: { fillColor: [79, 70, 229] }
   });
 
-  doc.save(`Nusaiba_IT_Report_${monthKey}.pdf`);
+  // Use blob URL so it works on mobile browsers (iOS Safari, Android Chrome)
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Nusaiba_IT_Report_${monthKey}.pdf`;
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 };
