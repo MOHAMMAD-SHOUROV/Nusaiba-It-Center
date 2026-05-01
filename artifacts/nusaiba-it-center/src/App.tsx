@@ -263,28 +263,23 @@ export default function App() {
       <Toaster position="top-right" richColors />
       
       {/* Sidebar */}
-      <motion.aside 
-        initial={false}
-        animate={{ width: sidebarOpen ? 260 : 80 }}
+      <aside
+        style={{ width: sidebarOpen ? 260 : 80, transition: 'width 0.1s ease' }}
         className="fixed left-0 top-0 h-full bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 z-50 overflow-hidden"
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 flex items-center justify-between">
+          <div className="p-4 flex items-center justify-between">
             {sidebarOpen && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center gap-3"
-              >
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                  <LayoutDashboard className="text-white w-5 h-5" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-[11px] font-black tracking-widest">NITC</span>
                 </div>
-                <span className="font-bold text-lg tracking-tight">Nusaiba IT</span>
-              </motion.div>
+                <span className="font-bold text-base tracking-tight">Nusaiba IT</span>
+              </div>
             )}
             {!sidebarOpen && (
-               <div className="w-8 h-8 bg-indigo-600 rounded-lg mx-auto flex items-center justify-center md:cursor-pointer" onClick={() => setSidebarOpen(true)}>
-                  <LayoutDashboard className="text-white w-5 h-5" />
+               <div className="w-9 h-9 bg-indigo-600 rounded-xl mx-auto flex items-center justify-center cursor-pointer" onClick={() => setSidebarOpen(true)}>
+                  <span className="text-white text-[10px] font-black tracking-widest">NITC</span>
                 </div>
             )}
           </div>
@@ -365,10 +360,10 @@ export default function App() {
               </div>
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${sidebarOpen ? 'pl-[260px]' : 'pl-[80px]'} min-h-screen relative`}>
+      <main className={`transition-all duration-100 ${sidebarOpen ? 'pl-[260px]' : 'pl-[80px]'} min-h-screen relative`}>
         {/* Header */}
         <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -426,10 +421,10 @@ export default function App() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.05 }}
             >
               {(activeTab === 'sheet' || activeTab === 'dollar-sheet' || activeTab === 'taka-sheet') && (
                 <div className="space-y-6">
@@ -715,10 +710,7 @@ function NavItem({ icon, label, active, onClick, expanded }: { icon: React.React
       </div>
       {expanded && <span className="font-semibold text-sm">{label}</span>}
       {active && expanded && (
-        <motion.div 
-          layoutId="active-pill"
-          className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600"
-        />
+        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600" />
       )}
     </button>
   );
