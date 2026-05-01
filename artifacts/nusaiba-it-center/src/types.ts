@@ -24,7 +24,7 @@ export interface CollectionMap {
   [day: number]: number | null;
 }
 
-export type CellColor = 'default' | 'red' | 'blue';
+export type CellColor = 'default' | 'red' | 'blue' | 'green' | 'yellow';
 
 export interface ColorMap {
   [day: number]: CellColor;

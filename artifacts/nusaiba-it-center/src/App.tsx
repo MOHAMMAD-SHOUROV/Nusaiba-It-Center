@@ -719,6 +719,16 @@ function AttendanceCell({ status, onChange }: { status: 'P' | 'A' | null, onChan
   );
 }
 
+const COLOR_CYCLE: CellColor[] = ['default', 'red', 'blue', 'green', 'yellow'];
+
+const COLOR_STYLES: Record<CellColor, string> = {
+  default: 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white',
+  red:     'bg-red-500 text-white',
+  blue:    'bg-blue-500 text-white',
+  green:   'bg-green-500 text-white',
+  yellow:  'bg-yellow-400 text-slate-900',
+};
+
 function CollectionCell({ value, onChange, prefix, color, onColorChange }: { 
   value: number | null; 
   onChange: (val: number | null) => void; 
@@ -728,8 +738,14 @@ function CollectionCell({ value, onChange, prefix, color, onColorChange }: {
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value?.toString() || '');
-  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isHolding = useRef(false);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clickCount = useRef(0);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setInputValue(value?.toString() || '');
+    }
+  }, [value, isEditing]);
 
   const handleBlur = () => {
     setIsEditing(false);
@@ -737,36 +753,35 @@ function CollectionCell({ value, onChange, prefix, color, onColorChange }: {
     onChange(isNaN(num) ? null : num);
   };
 
-  const handleMouseDown = () => {
-    isHolding.current = false;
-    holdTimer.current = setTimeout(() => {
-      isHolding.current = true;
-      const next: CellColor = color === 'default' ? 'red' : color === 'red' ? 'blue' : 'default';
+  const handleClick = () => {
+    clickCount.current += 1;
+    if (clickCount.current === 1) {
+      clickTimer.current = setTimeout(() => {
+        clickCount.current = 0;
+        setIsEditing(true);
+      }, 250);
+    } else {
+      if (clickTimer.current) clearTimeout(clickTimer.current);
+      clickCount.current = 0;
+      const idx = COLOR_CYCLE.indexOf(color);
+      const next = COLOR_CYCLE[(idx + 1) % COLOR_CYCLE.length];
       onColorChange(next);
-    }, 600);
+    }
   };
 
-  const handleMouseUp = () => {
-    if (holdTimer.current) clearTimeout(holdTimer.current);
-    if (!isHolding.current) setIsEditing(true);
-    isHolding.current = false;
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleClick();
   };
 
-  const handleMouseLeave = () => {
-    if (holdTimer.current) clearTimeout(holdTimer.current);
-  };
-
-  const colorClass = color === 'red'
-    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-    : color === 'blue'
-    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-    : 'bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-200';
+  const cellStyle = value != null ? COLOR_STYLES[color] : 'text-transparent';
 
   if (isEditing) {
     return (
-      <input 
+      <input
         autoFocus
-        className="w-full h-full text-center text-[12px] font-bold bg-white dark:bg-zinc-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+        type="number"
+        className="w-full min-h-[36px] text-center text-[13px] font-bold bg-white dark:bg-zinc-700 text-slate-900 dark:text-white border-none outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onBlur={handleBlur}
@@ -776,18 +791,12 @@ function CollectionCell({ value, onChange, prefix, color, onColorChange }: {
   }
 
   return (
-    <button 
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-      onTouchStart={handleMouseDown}
-      onTouchEnd={handleMouseUp}
-      className={`
-        w-full h-full flex items-center justify-center text-[12px] font-bold font-mono transition-all select-none
-        ${value ? colorClass : 'text-slate-200 dark:text-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800'}
-      `}
+    <button
+      onClick={handleClick}
+      onTouchEnd={handleTouchEnd}
+      className={`w-full min-h-[36px] flex items-center justify-center text-[13px] font-bold font-mono transition-colors select-none ${cellStyle}`}
     >
-      {value ? `${prefix}${value}` : ''}
+      {value != null ? `${prefix}${value}` : ''}
     </button>
   );
 }
