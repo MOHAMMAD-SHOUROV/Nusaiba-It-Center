@@ -624,7 +624,7 @@ export default function App() {
                           </div>
                            <div className="bg-slate-50 dark:bg-zinc-900 p-4 rounded-xl border border-slate-100 dark:border-zinc-800">
                             <span className="block text-xs text-slate-400 mb-1 uppercase">Developer</span>
-                            <span className="font-bold">Alihsan Association</span>
+                            <span className="font-bold">Alihsan Shourov</span>
                           </div>
                         </div>
                       </div>
