@@ -1,0 +1,104 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: 'Deployed API server URL (e.g. https://your-app.replit.app)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build Web Project
+        env:
+          PORT: '3000'
+          BASE_PATH: '/'
+          VITE_API_BASE_URL: ${{ github.event.inputs.api_base_url || vars.REPLIT_APP_URL || '' }}
+        run: |
+          pnpm --filter @workspace/nusaiba-it-center run build
+          echo "Build output:"
+          ls -la artifacts/nusaiba-it-center/dist/public
+
+      - name: Setup Capacitor Workspace
+        run: |
+          mkdir -p cap-workspace/www
+          cp -r artifacts/nusaiba-it-center/dist/public/. cap-workspace/www/
+
+          cat > cap-workspace/package.json << 'EOF'
+{
+  "name": "nusaiba-it-center-android",
+  "version": "1.0.0",
+  "description": "Nusaiba IT Center Android App",
+  "main": "index.js"
+}
+EOF
+
+          cat > cap-workspace/capacitor.config.json << 'EOF'
+{
+  "appId": "com.nusaibaitcenter.app",
+  "appName": "Nusaiba IT Center",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
+EOF
+
+      - name: Install Capacitor
+        working-directory: cap-workspace
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Add Android Platform
+        working-directory: cap-workspace
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        working-directory: cap-workspace
+        run: npx cap sync android
+
+      - name: Build Android APK
+        working-directory: cap-workspace/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nusaiba-IT-Center-APK
+          path: cap-workspace/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
