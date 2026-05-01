@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   LineChart, 
   Line, 
@@ -447,27 +446,27 @@ export default function App() {
                       <p className="text-xs text-slate-500 font-medium mt-1">Smart Attendance & Collection Management System</p>
                     </div>
 
-                    <ScrollArea className="h-[calc(100vh-320px)] w-full overflow-auto">
+                    <div className="overflow-auto h-[calc(100vh-320px)] w-full">
                       <div className="min-w-fit md:min-w-[1200px] pb-12">
                         <Table className="relative border-separate border-spacing-0">
                           <TableHeader className="sticky top-0 bg-white dark:bg-zinc-900 z-20">
-                            <TableRow className="hover:bg-transparent border-slate-200 dark:border-zinc-800">
-                              <TableHead className="w-[200px] sticky left-0 bg-white dark:bg-zinc-900 font-bold text-slate-900 dark:text-white border-r z-30">Staff Name</TableHead>
+                            <TableRow className="hover:bg-transparent border-slate-400 dark:border-zinc-500">
+                              <TableHead className="w-[200px] sticky left-0 bg-white dark:bg-zinc-900 font-bold text-slate-900 dark:text-white border-r border-r-slate-400 dark:border-r-zinc-500 z-30">Staff Name</TableHead>
                               {daysInMonth.map(day => (
-                                <TableHead key={day.toString()} className="w-12 p-0 text-center text-[10px] font-bold min-w-[3rem] border-r border-slate-100 dark:border-zinc-800">
+                                <TableHead key={day.toString()} className="w-12 p-0 text-center text-[10px] font-bold min-w-[3rem] border-r border-slate-400 dark:border-zinc-500 border-b border-b-slate-400 dark:border-b-zinc-500">
                                   {format(day, 'd')}
                                   <div className="text-[8px] opacity-40 uppercase">{format(day, 'EEE')[0]}</div>
                                 </TableHead>
                               ))}
-                              <TableHead className="w-[120px] text-right font-bold text-indigo-600 border-l bg-indigo-50/50 dark:bg-indigo-900/20 px-4 sticky right-0 z-20">
+                              <TableHead className="w-[120px] text-right font-bold text-indigo-600 border-l border-l-slate-400 dark:border-l-zinc-500 bg-indigo-50/50 dark:bg-indigo-900/20 px-4 sticky right-0 z-20">
                                 {activeTab === 'sheet' ? 'Present' : activeTab === 'dollar-sheet' ? 'Total $' : 'Total Taka'}
                               </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {filteredMembers.map((member) => (
-                              <TableRow key={member.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors border-slate-100 dark:border-zinc-800">
-                                <TableCell className="font-medium sticky left-0 bg-white dark:bg-zinc-900 z-10 border-r py-3">
+                              <TableRow key={member.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors border-slate-300 dark:border-zinc-600">
+                                <TableCell className="font-medium sticky left-0 bg-white dark:bg-zinc-900 z-10 border-r border-r-slate-400 dark:border-r-zinc-500 border-b border-b-slate-300 dark:border-b-zinc-600 py-3">
                                   <div className="flex items-center justify-between group">
                                     <div className="flex flex-col whitespace-nowrap">
                                       <span className="text-sm font-semibold">{member.name}</span>
@@ -488,7 +487,7 @@ export default function App() {
                                   const record = records.find(r => r.memberId === member.id && r.monthKey === monthKey);
                                   
                                   return (
-                                    <TableCell key={day.toString()} className="p-0 h-12 border-r border-slate-100 dark:border-zinc-800 min-w-[3rem]">
+                                    <TableCell key={day.toString()} className="p-0 h-12 border-r border-r-slate-300 dark:border-r-zinc-600 border-b border-b-slate-300 dark:border-b-zinc-600 min-w-[3rem]">
                                       {activeTab === 'sheet' ? (
                                         <AttendanceCell 
                                           status={record?.attendance[dayNum] || null} 
@@ -504,7 +503,7 @@ export default function App() {
                                     </TableCell>
                                   );
                                 })}
-                                <TableCell className="text-right font-mono text-sm border-l bg-slate-50/50 dark:bg-zinc-800/20 px-4 sticky right-0 z-10">
+                                <TableCell className="text-right font-mono text-sm border-l border-l-slate-400 dark:border-l-zinc-500 border-b border-b-slate-300 dark:border-b-zinc-600 bg-slate-50/50 dark:bg-zinc-800/20 px-4 sticky right-0 z-10">
                                   {activeTab === 'sheet' ? (
                                     <span className="text-indigo-600 font-bold">
                                       {Object.values(records.find(r => r.memberId === member.id && r.monthKey === monthKey)?.attendance || {}).filter(s => s === 'P').length}
@@ -537,7 +536,7 @@ export default function App() {
                           </div>
                         </div>
                       </div>
-                    </ScrollArea>
+                    </div>
                   </Card>
                 </div>
               )}
@@ -677,10 +676,10 @@ function AttendanceCell({ status, onChange }: { status: 'P' | 'A' | null, onChan
     <button 
       onClick={toggleStatus}
       className={`
-        w-full h-full flex items-center justify-center text-[10px] font-bold transition-all
-        ${status === 'P' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : ''}
-        ${status === 'A' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400' : ''}
-        ${status === null ? 'hover:bg-slate-100 dark:hover:bg-zinc-800' : ''}
+        w-full h-full flex items-center justify-center text-[11px] font-black transition-all
+        ${status === 'P' ? 'bg-white text-gray-900 border border-gray-200' : ''}
+        ${status === 'A' ? 'bg-red-600 text-white' : ''}
+        ${status === null ? 'hover:bg-slate-100 dark:hover:bg-zinc-700 text-transparent' : ''}
       `}
     >
       {status}
