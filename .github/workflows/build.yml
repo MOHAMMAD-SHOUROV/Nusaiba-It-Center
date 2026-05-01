@@ -53,30 +53,36 @@ jobs:
           mkdir -p cap-workspace/www
           cp -r artifacts/nusaiba-it-center/dist/public/. cap-workspace/www/
 
-          cat > cap-workspace/package.json << 'EOF'
-{
-  "name": "nusaiba-it-center-android",
-  "version": "1.0.0",
-  "description": "Nusaiba IT Center Android App",
-  "main": "index.js"
-}
-EOF
+          python3 -c "
+          import json
 
-          cat > cap-workspace/capacitor.config.json << 'EOF'
-{
-  "appId": "com.nusaibaitcenter.app",
-  "appName": "Nusaiba IT Center",
-  "webDir": "www",
-  "server": {
-    "androidScheme": "https",
-    "hostname": "localhost",
-    "cleartext": true
-  },
-  "android": {
-    "allowMixedContent": true
-  }
-}
-EOF
+          pkg = {
+            'name': 'nusaiba-it-center-android',
+            'version': '1.0.0',
+            'description': 'Nusaiba IT Center Android App',
+            'main': 'index.js'
+          }
+          with open('cap-workspace/package.json', 'w') as f:
+            json.dump(pkg, f, indent=2)
+
+          cap = {
+            'appId': 'com.nusaibaitcenter.app',
+            'appName': 'Nusaiba IT Center',
+            'webDir': 'www',
+            'server': {
+              'androidScheme': 'https',
+              'hostname': 'localhost',
+              'cleartext': True
+            },
+            'android': {
+              'allowMixedContent': True
+            }
+          }
+          with open('cap-workspace/capacitor.config.json', 'w') as f:
+            json.dump(cap, f, indent=2)
+
+          print('Config files created successfully')
+          "
 
       - name: Install Capacitor
         working-directory: cap-workspace
