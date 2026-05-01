@@ -76,6 +76,8 @@ export default function App() {
   const [records, setRecords] = useState<MonthlyRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 1024 : true);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberPhone, setNewMemberPhone] = useState('');
   const [officeNumber, setOfficeNumber] = useState('+880 1709 281334');
@@ -122,17 +124,18 @@ export default function App() {
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
 
   const addMember = () => {
-    if (!newMemberName) return toast.error("Please enter a name");
+    if (!newMemberName.trim()) return toast.error("Please enter a name");
     const newMember: Member = {
       id: Math.random().toString(36).substr(2, 9),
-      name: newMemberName,
-      phone: newMemberPhone || 'N/A',
+      name: newMemberName.trim(),
+      phone: newMemberPhone.trim() || 'N/A',
       isActive: true,
       createdAt: new Date().toISOString()
     };
     setMembers([...members, newMember]);
     setNewMemberName('');
     setNewMemberPhone('');
+    setShowAddModal(false);
     toast.success(`${newMemberName} added successfully`);
   };
 
@@ -261,6 +264,81 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 transition-colors duration-300 font-sans">
       <Toaster position="top-right" richColors />
+
+      {/* Add Member Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-6 mx-4 w-full max-w-sm border border-slate-200 dark:border-zinc-700">
+            <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4">নতুন Staff যোগ করুন</h3>
+            <div className="space-y-3">
+              <input
+                autoFocus
+                type="text"
+                placeholder="নাম লিখুন"
+                value={newMemberName}
+                onChange={e => setNewMemberName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addMember()}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+              <input
+                type="tel"
+                placeholder="ফোন নম্বর (optional)"
+                value={newMemberPhone}
+                onChange={e => setNewMemberPhone(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addMember()}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => { setShowAddModal(false); setNewMemberName(''); setNewMemberPhone(''); }}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addMember}
+                className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-6 mx-4 w-full max-w-sm border border-slate-200 dark:border-zinc-700">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-900 dark:text-white">Delete Member?</h3>
+                <p className="text-sm text-slate-500 dark:text-zinc-400">
+                  "{members.find(m => m.id === confirmDeleteId)?.name}" মুছে যাবে। এটি ফেরানো যাবে না।
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { removeMember(confirmDeleteId); setConfirmDeleteId(null); }}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Sidebar */}
       <aside
@@ -452,30 +530,13 @@ export default function App() {
                         PDF
                       </Button>
                       
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 border-none">
-                            <Plus className="w-4 h-4" />
-                            Add Member
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="p-4 w-72" align="end">
-                          <DropdownMenuLabel>Add New Staff</DropdownMenuLabel>
-                          <div className="space-y-4 pt-2">
-                            <Input 
-                              placeholder="Name" 
-                              value={newMemberName} 
-                              onChange={e => setNewMemberName(e.target.value)} 
-                            />
-                            <Input 
-                              placeholder="Phone" 
-                              value={newMemberPhone} 
-                              onChange={e => setNewMemberPhone(e.target.value)} 
-                            />
-                            <Button className="w-full" onClick={addMember}>Save Member</Button>
-                          </div>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        onClick={() => setShowAddModal(true)}
+                        className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 border-none"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Member
+                      </Button>
                     </div>
                   </div>
 
@@ -527,7 +588,7 @@ export default function App() {
                                       <span className="text-[10px] text-slate-400 font-normal">{member.phone}</span>
                                     </div>
                                     <button
-                                      onClick={() => removeMember(member.id)}
+                                      onClick={() => setConfirmDeleteId(member.id)}
                                       className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />

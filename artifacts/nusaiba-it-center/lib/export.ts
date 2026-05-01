@@ -1,15 +1,8 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
-import { Member, MonthlyRecord } from '../types';
-
-// Extend jsPDF with autotable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
+import { Member } from '../types';
 
 export const exportToExcel = (members: Member[], monthKey: string) => {
   const data = members.map(m => ({
@@ -43,7 +36,7 @@ export const exportToPDF = (members: Member[], monthKey: string) => {
     m.isActive ? 'Active' : 'Inactive'
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 45,
     head: [['#', 'Name', 'Phone', 'Status']],
     body: tableData,
@@ -51,15 +44,23 @@ export const exportToPDF = (members: Member[], monthKey: string) => {
     headStyles: { fillColor: [79, 70, 229] }
   });
 
-  // Use blob URL so it works on mobile browsers (iOS Safari, Android Chrome)
-  const blob = doc.output('blob');
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `Nusaiba_IT_Report_${monthKey}.pdf`;
-  link.target = '_blank';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  const filename = `Nusaiba_IT_Report_${monthKey}.pdf`;
+
+  try {
+    // Try data URI approach (works best in PWA / mobile)
+    const dataUri = doc.output('datauristring');
+    const link = document.createElement('a');
+    link.href = dataUri;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch {
+    // Fallback: open in new tab
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
 };
